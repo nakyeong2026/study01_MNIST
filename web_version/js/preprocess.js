@@ -1,5 +1,7 @@
 // 캔버스 그림이나 사진을 모델 입력(정규화된 28x28 = 784개 값)으로 바꾸는 전처리
-// desktop_version의 app.py(그리기)와 predict.py(이미지 파일) 전처리를 따름
+// desktop_version의 app.py(그리기)와 predict.py(이미지 파일) 흐름을 따르되, 크기 조정은 PIL의
+// LANCZOS(app.py)/BICUBIC(predict.py의 ImageOps.pad 기본값) 대신 면적 평균으로 근사하므로, 실제로
+// 크기가 바뀌는 입력에서는 데스크톱 버전과 값이 비슷하지만 완전히 같지는 않다
 
 export const IMAGE_SIZE = 28;
 const MNIST_MEAN = 0.1307;
@@ -34,7 +36,7 @@ function areaWeights(srcLen, dstLen) {
   return result;
 }
 
-/** 면적 평균으로 크기 변경 (가로 방향 후 세로 방향) */
+/** 면적 평균으로 크기 변경 (가로 방향 후 세로 방향) — PIL LANCZOS/BICUBIC 대신 쓰는 근사 */
 export function resizeArea(src, srcW, srcH, dstW, dstH) {
   const xTaps = areaWeights(srcW, dstW);
   const yTaps = areaWeights(srcH, dstH);
