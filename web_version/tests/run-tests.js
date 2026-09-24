@@ -3,5 +3,6 @@ import { runAll } from "./harness.js";
 import "./ops.test.js";
 import "./model.test.js";
 import "./parity.test.js";
+import "./preprocess.test.js";
 
 runAll(document.getElementById("results"));
