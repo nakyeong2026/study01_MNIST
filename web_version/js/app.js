@@ -4,6 +4,7 @@ import { loadWeights, predict } from "./model.js";
 import { preprocessDrawing, preprocessPhoto, decodeImage, IMAGE_SIZE } from "./preprocess.js";
 
 const PEN_WIDTH = 18; // desktop_version/app.py와 같은 펜 굵기 (280px 캔버스 기준)
+const READY_STATUS = "숫자를 그리거나 이미지를 올려 보세요";
 
 const canvas = document.getElementById("draw-canvas");
 const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -95,9 +96,11 @@ function recognizeDrawing() {
   if (!weights) return;
   const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
   showResult(preprocessDrawing(data, width, height));
+  statusEl.textContent = READY_STATUS; // 이전 업로드의 "x.png 인식 결과" 문구가 남지 않도록
 }
 
 canvas.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return; // 마우스 오른쪽/가운데 버튼 등은 무시
   drawing = true;
   canvas.setPointerCapture(event.pointerId);
   lastPoint = toCanvasPoint(event);
@@ -123,6 +126,7 @@ canvas.addEventListener("pointercancel", endStroke);
 clearButton.addEventListener("click", () => {
   clearCanvas();
   resetResult();
+  if (weights) statusEl.textContent = READY_STATUS; // 로딩/오류 문구는 그대로 두고, 준비된 상태일 때만 초기화
 });
 
 fileInput.addEventListener("change", async () => {
@@ -131,10 +135,12 @@ fileInput.addEventListener("change", async () => {
   if (!file || !weights) return;
   try {
     const image = await decodeImage(file);
+    clearCanvas(); // 이전에 그린 획이 업로드 결과와 함께 보이지 않도록
     showResult(preprocessPhoto(image.data, image.width, image.height));
     statusEl.textContent = `"${file.name}" 인식 결과`;
   } catch (err) {
     console.error(err);
+    resetResult(); // 이전 결과의 막대/미리보기가 남지 않도록
     statusEl.textContent = "이미지를 읽을 수 없습니다. 다른 파일을 골라 주세요.";
   }
 });
@@ -146,7 +152,7 @@ async function init() {
   try {
     weights = await loadWeights(new URL("../model/", import.meta.url));
     fileInput.disabled = false;
-    statusEl.textContent = "숫자를 그리거나 이미지를 올려 보세요";
+    statusEl.textContent = READY_STATUS;
   } catch (err) {
     console.error(err);
     statusEl.textContent = "모델을 불러오지 못했습니다. 페이지를 http(s) 주소로 열었는지 확인해 주세요.";

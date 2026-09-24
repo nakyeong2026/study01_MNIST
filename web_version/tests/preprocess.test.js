@@ -1,4 +1,4 @@
-import { test, assertClose } from "./harness.js";
+import { test, assert, assertClose } from "./harness.js";
 import {
   toGrayscale, resizeArea, padAndResize, normalize,
   preprocessDrawing, preprocessPhoto, decodeImage,
@@ -37,6 +37,19 @@ test("padAndResize는 비율을 유지하고 남는 곳을 검정으로 채워 �
     255, 255, 255, 255,
     0, 0, 0, 0,
   ]);
+});
+
+test("padAndResize는 PIL round()(round-half-to-even)와 같은 크기/위치를 계산한다", () => {
+  // 20x30 -> size 28: newW = round(20/30*28) = round(18.667) = 19,
+  // offX = round((28-19)*0.5) = round(4.5) = 4 (half-even; JS Math.round라면 5가 됨)
+  const gray = new Float32Array(20 * 30).fill(255);
+  const out = padAndResize(gray, 20, 30, 28);
+  const midRow = 14; // newH = 28이라 세로 오프셋은 0, 가운데 행 아무거나 확인
+  assertClose(out[midRow * 28 + 3], 0, 1e-6, "패딩 왼쪽 바깥(3열)은 0이어야 함");
+  for (let x = 4; x <= 22; x++) {
+    assert(out[midRow * 28 + x] > 0, `이미지 안쪽(${x}열)은 0보다 커야 함`);
+  }
+  assertClose(out[midRow * 28 + 23], 0, 1e-6, "패딩 오른쪽 바깥(23열)은 0이어야 함");
 });
 
 test("normalize는 MNIST 평균/표준편차로 정규화한다", () => {

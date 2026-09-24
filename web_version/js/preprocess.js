@@ -61,16 +61,25 @@ export function resizeArea(src, srcW, srcH, dstW, dstH) {
   return out;
 }
 
+/** 파이썬 내장 round()와 같은 반올림(0.5는 가장 가까운 짝수로, "round half to even") */
+function roundHalfEven(x) {
+  const floor = Math.floor(x);
+  const diff = x - floor;
+  if (diff < 0.5) return floor;
+  if (diff > 0.5) return floor + 1;
+  return floor % 2 === 0 ? floor : floor + 1;
+}
+
 /** 비율을 유지한 채 size x size 안에 맞게 줄이고 남는 곳은 검정(0)으로 채워 가운데 배치 (PIL ImageOps.pad와 같은 방식) */
 export function padAndResize(gray, width, height, size) {
   const scale = Math.min(size / width, size / height);
-  const newW = Math.max(1, Math.round(width * scale));
-  const newH = Math.max(1, Math.round(height * scale));
+  const newW = Math.max(1, roundHalfEven(width * scale));
+  const newH = Math.max(1, roundHalfEven(height * scale));
   const resized = resizeArea(gray, width, height, newW, newH);
 
   const out = new Float32Array(size * size);
-  const offX = Math.round((size - newW) / 2);
-  const offY = Math.round((size - newH) / 2);
+  const offX = roundHalfEven((size - newW) * 0.5);
+  const offY = roundHalfEven((size - newH) * 0.5);
   for (let y = 0; y < newH; y++) {
     for (let x = 0; x < newW; x++) {
       out[(offY + y) * size + offX + x] = resized[y * newW + x];
@@ -103,7 +112,12 @@ export function preprocessPhoto(rgba, width, height) {
   return { pixels, input: normalize(pixels) };
 }
 
-/** 이미지 파일(Blob)을 원래 크기의 RGBA 픽셀(ImageData)로 디코딩 */
+/**
+ * 이미지 파일(Blob)을 원래 크기의 RGBA 픽셀(ImageData)로 디코딩
+ * 주의: 브라우저는 EXIF 방향(orientation) 태그를 자동 적용하지만 predict.py의 PIL Image.open은
+ * 적용하지 않으며, 완전히 투명한 픽셀은 캔버스에서 읽으면 RGB가 0으로 나오지만 PIL은 저장된 RGB
+ * 값을 그대로 유지하므로, 이런 파일은 데스크톱 버전과 결과가 다를 수 있다
+ */
 export async function decodeImage(blob) {
   const bitmap = await createImageBitmap(blob, { colorSpaceConversion: "none", premultiplyAlpha: "none" });
   const canvas = document.createElement("canvas");
