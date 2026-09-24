@@ -8,6 +8,7 @@
 
 import os
 import sys
+from pathlib import Path
 import tkinter as tk
 from tkinter import font as tkfont
 
@@ -18,7 +19,8 @@ from torchvision import transforms
 
 from model import MnistCNN
 
-WEIGHTS_PATH = "mnist_cnn.pt"
+# 스크립트 파일 위치 기준 경로 (app.bat이나 다른 폴더에서 실행해도 동작하도록)
+WEIGHTS_PATH = Path(__file__).resolve().parent / "mnist_cnn.pt"
 CANVAS_SIZE = 280   # 화면에 보이는 캔버스 크기(픽셀)
 IMAGE_SIZE = 28     # 모델에 입력하는 실제 이미지 크기
 PEN_WIDTH = 18      # 그리기 펜 굵기

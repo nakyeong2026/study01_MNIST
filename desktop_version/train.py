@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """MNIST 데이터셋으로 CNN 모델을 학습시키고 가중치를 mnist_cnn.pt로 저장하는 스크립트"""
 
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -13,7 +15,10 @@ from model import MnistCNN
 EPOCHS = 5
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001
-WEIGHTS_PATH = "mnist_cnn.pt"
+# 스크립트 파일 위치 기준 경로 (어느 폴더에서 실행해도 동작하도록)
+BASE_DIR = Path(__file__).resolve().parent
+WEIGHTS_PATH = BASE_DIR / "mnist_cnn.pt"
+DATA_DIR = BASE_DIR / "data"
 
 
 def get_data_loaders():
@@ -25,8 +30,8 @@ def get_data_loaders():
         transforms.Normalize((0.1307,), (0.3081,)),
     ])
 
-    train_dataset = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
-    test_dataset = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+    train_dataset = datasets.MNIST(root=DATA_DIR, train=True, download=True, transform=transform)
+    test_dataset = datasets.MNIST(root=DATA_DIR, train=False, download=True, transform=transform)
 
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)

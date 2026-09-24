@@ -9,6 +9,7 @@
 """
 
 import sys
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -18,7 +19,8 @@ from torchvision import transforms
 
 from model import MnistCNN
 
-WEIGHTS_PATH = "mnist_cnn.pt"
+# 스크립트 파일 위치 기준 경로 (어느 폴더에서 실행해도 동작하도록)
+WEIGHTS_PATH = Path(__file__).resolve().parent / "mnist_cnn.pt"
 
 
 def load_model(device):
