@@ -37,6 +37,8 @@ main {
 
 h1 { margin: 0 0 4px; font-size: 1.6rem; }
 
+.student { margin: 0 0 4px; font-weight: 600; }
+
 .status { margin: 0 0 20px; color: var(--muted); }
 
 .layout {
